@@ -1,0 +1,31 @@
+name: Build and Push Docker Image
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        required: true
+        default: 'develop'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Check out the code from the specified branch
+      - name: Checkout code from branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      # Step 3: Log in to Docker Hub using secrets (credentials are stored in GitHub Secrets)
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      # Step 4: Build the Docker image and tag it with the branch name
+      - name: Build Docker image
+        run: |
+         docker build -t 9867297187/php-docker-app:${{ github.event.inputs.branch }} .
+      # Step 5: Push the Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push 9867297187/php-docker-app:${{ github.event.inputs.branch }}
